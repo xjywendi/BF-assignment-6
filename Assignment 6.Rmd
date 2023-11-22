@@ -1,0 +1,51 @@
+---
+title: "Assignment 6"
+author: "Jiayi"
+date: '2023-11-21'
+output: html_document
+---
+
+```{r}
+library(fpp)
+library(fpp2)
+library(forecast)
+AAPL<- read.csv("AAPL.csv")
+
+AAPL$Date<-as.Date(AAPL$Date)
+View(AAPL)
+
+#Making data to time series#Will only forecast the Open price
+Open_ts <- ts(AAPL$Open, start=c(2018, 11),frequency=12)
+Open_ts
+
+#ARIMA Model running
+apple_arima<-auto.arima(Open_ts, stepwise=FALSE, approximation=FALSE, trace = TRUE)
+apple_arima
+
+ #Best model: ARIMA(0,1,0)
+ #（0,1,0) model which brings that there is no autogressive and no moving average in this models, and with 1, that means we only took 1 step to get the timeseries to stationary
+ #The variance of the residuals(sigma^2) is 119.6 which is not closer to 0, thus this is not such a good fit model for this timeseries.
+
+
+#Residual Analysis based from ARIMA
+res<-residuals(apple_arima)
+Acf(res)
+Box.test(res, lag=20, type="Ljung")
+plot.ts(res)
+hist(res)
+tsdiag(apple_arima)
+
+
+
+#Plot forecast of next 5 period
+
+apple_fcast<-forecast(apple_arima, h=5)
+plot(apple_fcast)
+plot(Open_ts)
+lines(apple_fcast$fitted,col="red")
+
+
+#Accuracy of ARIMA forecasting
+accuracy(apple_fcast)
+
+```
